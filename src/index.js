@@ -24,11 +24,51 @@ UrbanAlexa.prototype = Object.create(AlexaSkill.prototype);
 UrbanAlexa.prototype.constructor = UrbanAlexa;
 
 UrbanAlexa.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
-    var speechText = "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.";
-    // If the user either does not reply to the welcome message or says something that is not
-    // understood, they will be prompted again with this text.
-    var repromptText = "For instructions on what you can say, please say help me.";
-    response.ask(speechText, repromptText);
+    var speechText, repromptText;
+    var repromptOutput, speechOutput = "";
+
+    if (session.attributes.stage) {
+        if (session.attributes.stage === 1) {
+            speechText = session.attributes.speechPunchline;
+            speechOutput = {
+                speech: '<speak>' + speechText + '</speak>',
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            //If the joke completes successfully, this function uses a "tell" response.
+            response.tellWithCard(speechOutput, "Wise Guy", cardOutput);
+        } else {
+
+            session.attributes.stage = 0;
+            speechText = "That's not how knock knock jokes work! <break time=\"0.3s\" /> " + "Knock knock!";
+
+            repromptText = "You can ask who's there.";
+
+            speechOutput = {
+                speech: speechText,
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            repromptOutput = {
+                speech: repromptText,
+                type: AlexaSkill.speechOutputType.PLAIN_TEXT
+            };
+            //If the joke has to be restarted, this function uses an "ask" response.
+            response.askWithCard(speechOutput, repromptOutput, "Wise Guy", cardOutput);
+        }
+    } else {
+        speechText = "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.";
+        repromptText = "For instructions on what you can say, please say help me.";
+        response.ask(speechText, repromptText);
+
+        speechOutput = {
+            speech: speechText,
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        };
+        repromptOutput = {
+            speech: repromptText,
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        };
+        response.askWithCard(speechOutput, repromptOutput, "Wise Guy", speechOutput);
+    }
 };
 
 UrbanAlexa.prototype.intentHandlers = {
@@ -52,23 +92,31 @@ UrbanAlexa.prototype.intentHandlers = {
             if (error) {
                 console.log(error);
                 speechOutput = {
-                    speech: "<speak>" + "I'm sorry, I cannot define the term: " + termSlot.value + "</speak>",
+                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "What else can I help with?" + "</speak>",
+                    speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
+                session.attributes.stage = 0;
                 alexaResponse.ask(speechOutput, repromptOutput);
             } else {
                 console.log(response.statusCode, body);
-                speech = body.total === 0 ? "<speak>" + "What else can I help with?" + "</speak>" : "<speak>" + body.list[0].definition + "</speak>";
+                if (body.list === 0 || body.tags === 0) {
+                    speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
+                    session.attributes.stage = 0;
+                } else {
+                    speech = "<speak>" + body.list[0].definition + "</speak>";
+                    session.attributes.list = body.list;
+                    session.attributes.stage = 1;
+                }
                 speechOutput = {
                     speech: speech,
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "What else can I help with?" + "</speak>",
+                    speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 alexaResponse.ask(speechOutput, repromptOutput);
@@ -84,19 +132,79 @@ UrbanAlexa.prototype.intentHandlers = {
         response.tell(speechOutput);
     },
     "AMAZON.HelpIntent": function (intent, session, response) {
-        var speechText = "You can ask urban Dictionary to define such as, what's boston pancake, or, you can say exit... Now, what can I help you with?";
-        var repromptText = "You can say things like, what's boston pancake, or you can say exit... Now, what can I help you with?";
-        var speechOutput = {
-            speech: speechText,
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        var repromptOutput = {
-            speech: repromptText,
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
+        var speechOutput, repromptOutput = "";
+
+        switch (session.attributes.stage) {
+            case 0:
+                speechOutput = {
+                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
+                    type: AlexaSkill.speechOutputType.SSML
+                };
+                repromptOutput = {
+                    speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
+                    type: AlexaSkill.speechOutputType.SSML
+                };
+                break;
+            case 1:
+                speechOutput = {
+                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
+                    type: AlexaSkill.speechOutputType.SSML
+                };
+                repromptOutput = speechOutput;
+                break;
+        }
+        // For the repromptText, play the speechOutput again
         response.ask(speechOutput, repromptOutput);
     }
 };
+
+/**
+ * Selects a joke randomly and starts it off by saying "Knock knock".
+ */
+function handleDefineTerm(session, response) {
+    var speechText = "";
+
+    //Reprompt speech will be triggered if the user doesn't respond.
+    var repromptText = "You can ask, who's there";
+
+    //Check if session variables are already initialized.
+    if (session.attributes.stage) {
+
+        //Ensure the dialogue is on the correct stage.
+        if (session.attributes.stage === 0) {
+            //The joke is already initialized, this function has no more work.
+            speechText = "knock knock!";
+        } else {
+            //The user attempted to jump to the intent of another stage.
+            session.attributes.stage = 0;
+            speechText = "That's not how knock knock jokes work! "
+                + "knock knock";
+        }
+    } else {
+        //Select a random joke and store it in the session variables.
+        var jokeID = Math.floor(Math.random() * JOKE_LIST.length);
+
+        //The stage variable tracks the phase of the dialogue.
+        //When this function completes, it will be on stage 1.
+        session.attributes.stage = 1;
+        session.attributes.setup = JOKE_LIST[jokeID].setup;
+        session.attributes.speechPunchline = JOKE_LIST[jokeID].speechPunchline;
+        session.attributes.cardPunchline = JOKE_LIST[jokeID].cardPunchline;
+
+        speechText = "Knock knock!";
+    }
+
+    var speechOutput = {
+        speech: speechText,
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    var repromptOutput = {
+        speech: repromptText,
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    response.askWithCard(speechOutput, repromptOutput, "Wise Guy", speechText);
+}
+
 
 exports.handler = function (event, context) {
     var urbanAlexa = new UrbanAlexa();
