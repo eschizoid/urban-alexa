@@ -2,8 +2,8 @@
  * Lambda function for handling Alexa Skill requests that uses Urbandictionary.com REST api to define a term.
  * Examples:
  * One-shot model:
- *  User: "Alexa, ask Urban Dictionary what is th"
- *  Alexa: "(queries Urban Dictinary REST api and finds the term)"
+ *  User: "Alexa, ask Urban Dictionary what is the meaning of Boston Pancake?"
+ *  Alexa: "(queries Urban Dictionary REST api and finds the term)"
  */
 
 'use strict';
