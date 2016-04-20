@@ -62,7 +62,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 alexaResponse.ask(speechOutput, repromptOutput);
             } else {
                 console.log(response.statusCode, body);
-                speech = body.total === 0 ? "<speak>" + "What else can I help with?" + "</speak>" : "<speak>" + body.list[0].definition + "</p>";
+                speech = body.total === 0 ? "<speak>" + "What else can I help with?" + "</speak>" : "<speak>" + body.list[0].definition + "</speak>";
                 speechOutput = {
                     speech: speech,
                     type: AlexaSkill.speechOutputType.SSML
