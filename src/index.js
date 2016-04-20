@@ -81,7 +81,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 if (body.list === 0 || body.tags === 0) {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                 } else {
-                    speech = "<speak>" + list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
+                    speech = "<speak>" + body.list.definition[DEFINITION_POINTER++].replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
                     session.attributes.list = body.list;
                 }
                 speechOutput = {
@@ -118,7 +118,7 @@ UrbanAlexa.prototype.intentHandlers = {
             response.tell(speechOutput);
         } else {
             speechOutput = {
-                speech: "<speak>" + session.attribute.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                speech: "<speak>" + session.attribute.list.definition[DEFINITION_POINTER++].replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
