@@ -1,4 +1,4 @@
-##Jira-AWS Lambda function for Alexa
+##UrbanDictionary-AWS Lambda function for Alexa
 
 ### Setup
 To run this example skill you need to do two things. The first is to deploy the example code in lambda, and the second is to configure the Alexa skill to use Lambda.
