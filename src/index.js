@@ -76,9 +76,24 @@ UrbanAlexa.prototype.intentHandlers = {
         var termSlot = intent.slots.Term;
         var speech, speechOutput, repromptOutput;
 
-        console.log(termSlot.value);
+        var hasTerm = termSlot && termSlot.value;
 
-        return request({
+        if (hasTerm) {
+            session.attributes.term = termSlot.value;
+        } else {
+            speechOutput = {
+                speech: "<speak>" + "I'm sorry, I couldn't find the term you were looking for." + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            repromptOutput = {
+                speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            session.attributes.stage = 0;
+            alexaResponse.ask(speechOutput, repromptOutput);
+        }
+
+        request({
             url: config.endpoint,
             method: "GET",
             json: true,
@@ -107,7 +122,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                     session.attributes.stage = 0;
                 } else {
-                    speech = "<speak>" + body.list[0].definition + "</speak>";
+                    speech = "<speak>" + list[0].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
                     session.attributes.list = body.list;
                     session.attributes.stage = 1;
                 }
@@ -116,7 +131,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
+                    speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 alexaResponse.ask(speechOutput, repromptOutput);
@@ -137,31 +152,26 @@ UrbanAlexa.prototype.intentHandlers = {
         switch (session.attributes.stage) {
             case 0:
                 speechOutput = {
-                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
+                    speech: "<speak>" + "I'm sorry, I couldn't find the term you were looking for." + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
                     speech: "<speak>" + "What other term would you like me to search for?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
+                response.ask(speechOutput, repromptOutput);
                 break;
             case 1:
-                speechOutput = {
-                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
-                    type: AlexaSkill.speechOutputType.SSML
-                };
-                repromptOutput = speechOutput;
+                handleOtherDefinition(session, response);
                 break;
         }
-        // For the repromptText, play the speechOutput again
-        response.ask(speechOutput, repromptOutput);
     }
 };
 
 /**
  * Selects a joke randomly and starts it off by saying "Knock knock".
  */
-function handleDefineTerm(session, response) {
+function handleOtherDefinition(session, response) {
     var speechText = "";
 
     //Reprompt speech will be triggered if the user doesn't respond.
