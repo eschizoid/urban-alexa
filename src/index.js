@@ -16,6 +16,8 @@ var request = require('request');
 
 var appId = config.appId;
 
+var DEFINITION_POINTER = 0;
+
 var UrbanAlexa = function () {
     AlexaSkill.call(this, appId);
 };
@@ -24,11 +26,19 @@ UrbanAlexa.prototype = Object.create(AlexaSkill.prototype);
 UrbanAlexa.prototype.constructor = UrbanAlexa;
 
 UrbanAlexa.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
-    var speechText = "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.";
-    // If the user either does not reply to the welcome message or says something that is not
-    // understood, they will be prompted again with this text.
-    var repromptText = "For instructions on what you can say, please say help me.";
-    response.ask(speechText, repromptText);
+    var repromptOutput, speechOutput;
+
+    DEFINITION_POINTER = 0;
+
+    speechOutput = {
+        speech: "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    repromptOutput = {
+        speech: "For instructions on what you can say, please say help me.",
+        type: AlexaSkill.speechOutputType.PLAIN_TEXT
+    };
+    response.ask(speechOutput, repromptOutput);
 };
 
 UrbanAlexa.prototype.intentHandlers = {
@@ -36,9 +46,19 @@ UrbanAlexa.prototype.intentHandlers = {
         var termSlot = intent.slots.Term;
         var speech, speechOutput, repromptOutput;
 
-        console.log(termSlot.value);
+        var hasTerm = termSlot && termSlot.value;
 
-        return request({
+        if (hasTerm) {
+            session.attributes.term = termSlot.value;
+        } else {
+            speechOutput = {
+                speech: "<speak>" + "I'm sorry, I couldn't find the term you were looking for." + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            alexaResponse.tell(speechOutput);
+        }
+
+        request({
             url: config.endpoint,
             method: "GET",
             json: true,
@@ -52,23 +72,24 @@ UrbanAlexa.prototype.intentHandlers = {
             if (error) {
                 console.log(error);
                 speechOutput = {
-                    speech: "<speak>" + "I'm sorry, I cannot define the term: " + termSlot.value + "</speak>",
+                    speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
-                repromptOutput = {
-                    speech: "<speak>" + "What else can I help with?" + "</speak>",
-                    type: AlexaSkill.speechOutputType.SSML
-                };
-                alexaResponse.ask(speechOutput, repromptOutput);
+                alexaResponse.tell(speechOutput);
             } else {
                 console.log(response.statusCode, body);
-                speech = body.total === 0 ? "<speak>" + "What else can I help with?" + "</speak>" : "<speak>" + body.list[0].definition + "</speak>";
+                if (body.list === 0 || body.tags === 0) {
+                    speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
+                } else {
+                    speech = "<speak>" + body.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
+                    session.attributes.list = body.list;
+                }
                 speechOutput = {
                     speech: speech,
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "What else can I help with?" + "</speak>",
+                    speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 alexaResponse.ask(speechOutput, repromptOutput);
@@ -83,18 +104,31 @@ UrbanAlexa.prototype.intentHandlers = {
         var speechOutput = "Goodbye";
         response.tell(speechOutput);
     },
+    "AMAZON.NoIntent": function (intent, session, response) {
+        var speechOutput = "Goodbye";
+        response.tell(speechOutput);
+    },
+    "AMAZON.YesIntent": function (intent, session, response) {
+        var speechOutput, repromptOutput;
+        if (DEFINITION_POINTER > session.attribute.list.size) {
+            speechOutput = {
+                speech: "<speak>I gave you all the definitions that I have.<p>I can't believe the term is still not clear for you!</p></speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
+        } else {
+            speechOutput = {
+                speech: "<speak>" + session.attribute.list.list[DEFINITION_POINTER++].replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            repromptOutput = {
+                speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.ask(speechOutput, repromptOutput);
+        }
+    },
     "AMAZON.HelpIntent": function (intent, session, response) {
-        var speechText = "You can ask urban Dictionary to define such as, what's boston pancake, or, you can say exit... Now, what can I help you with?";
-        var repromptText = "You can say things like, what's boston pancake, or you can say exit... Now, what can I help you with?";
-        var speechOutput = {
-            speech: speechText,
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        var repromptOutput = {
-            speech: repromptText,
-            type: AlexaSkill.speechOutputType.PLAIN_TEXT
-        };
-        response.ask(speechOutput, repromptOutput);
     }
 };
 
