@@ -3,7 +3,7 @@
  * Examples:
  * One-shot model:
  *  User: "Alexa, ask Urban Dictionary what is the meaning of Boston Pancake?"
- *  Alexa: "(queries Urban Dictionary REST api and finds the term)"
+ *  Alexa: "(queries Urbandictionary.com REST api and finds the term)"
  */
 
 'use strict';
