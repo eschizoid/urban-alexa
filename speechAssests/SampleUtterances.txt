@@ -1,0 +1,3 @@
+DefineTerm to define {Term}
+DefineTerm what's {Term}
+DefineTerm what's the meaning of {Term}

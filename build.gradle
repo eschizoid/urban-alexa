@@ -1,0 +1,32 @@
+group 'urban-alexa'
+version '0.0.1'
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'com.moowork.grunt'
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+
+    dependencies {
+        classpath 'com.moowork.gradle:gradle-grunt-plugin:0.11'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+task buildAlexaSkillZip(type: Zip, dependsOn: npmInstall) {
+    from('node_modules') {
+        into '/'
+    }
+    from('src') {
+        into '/'
+    }
+}

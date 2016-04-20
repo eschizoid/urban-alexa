@@ -1,0 +1,16 @@
+{
+  "name": "urban-alexa",
+  "version": "0.1.0",
+  "description": "Integration between Alexa and  Urbandictionary.com.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.7.0",
+    "alexa-skill": "^0.1.1",
+    "aws": "^0.0.3-2"
+  }
+}
