@@ -118,7 +118,7 @@ UrbanAlexa.prototype.intentHandlers = {
             response.tell(speechOutput);
         } else {
             speechOutput = {
-                speech: "<speak>" + session.attribute.list.list[DEFINITION_POINTER++].replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                speech: "<speak>" + session.attribute.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
