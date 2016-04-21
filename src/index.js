@@ -105,13 +105,25 @@ UrbanAlexa.prototype.intentHandlers = {
         });
     },
     "AMAZON.StopIntent": function (intent, session, response) {
-        handleEndSession(intent, session, response);
+        var speechOutput = "Goodbye";
+        response.tell(speechOutput);
     },
     "AMAZON.CancelIntent": function (intent, session, response) {
-        handleEndSession(intent, session, response);
+        var speechOutput = "Goodbye";
+        response.tell(speechOutput);
     },
     "AMAZON.NoIntent": function (intent, session, response) {
-        handleEndSession(intent, session, response);
+        var similarTerms = session.attributes.similarTerms;
+        if (Array.isArray(similarTerms) && similarTerms.length > 0) {
+            speechOutput = {
+                speech: "<speak>Before you go, here is a list of similar terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
+        } else {
+            var speechOutput = "Goodbye";
+            response.tell(speechOutput);
+        }
     },
     "AMAZON.YesIntent": function (intent, session, response) {
         var speechOutput, repromptOutput;
@@ -154,20 +166,6 @@ UrbanAlexa.prototype.intentHandlers = {
         response.ask(speechOutput, repromptOutput);
     }
 };
-
-function handleEndSession(intent, session, response) {
-    var similarTerms = session.attributes.similarTerms;
-    if (Array.isArray(similarTerms) && similarTerms.length > 0) {
-        speechOutput = {
-            speech: "<speak>Before you go, here is a list of similar terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
-            type: AlexaSkill.speechOutputType.SSML
-        };
-        response.tell(speechOutput);
-    } else {
-        var speechOutput = "Goodbye";
-        response.tell(speechOutput);
-    }
-}
 
 exports.handler = function (event, context) {
     var urbanAlexa = new UrbanAlexa();
