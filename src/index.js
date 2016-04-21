@@ -159,7 +159,7 @@ function handleEndSession(intent, session, response) {
     var similarTerms = session.attributes.similarTerms;
     if (Array.isArray(similarTerms) && similarTerms.length > 0) {
         speechOutput = {
-            speech: "<speak>Here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
+            speech: "<speak>Before you go, here is a list of similar terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
             type: AlexaSkill.speechOutputType.SSML
         };
         response.tell(speechOutput);
