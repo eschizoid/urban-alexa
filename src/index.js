@@ -78,11 +78,12 @@ UrbanAlexa.prototype.intentHandlers = {
                 alexaResponse.tell(speechOutput);
             } else {
                 console.log(response.statusCode, body);
-                if (body.list === 0 || body.tags === 0) {
+                if (body.list.size === 0 || body.tags.size === 0) {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                 } else {
                     speech = "<speak>" + body.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
-                    session.attributes.list = body.list;
+                    session.attributes.definitions = body.list;
+                    session.attributes.similarTerms = body.tags;
                 }
                 speechOutput = {
                     speech: speech,
@@ -105,12 +106,24 @@ UrbanAlexa.prototype.intentHandlers = {
         response.tell(speechOutput);
     },
     "AMAZON.NoIntent": function (intent, session, response) {
-        var speechOutput = "Goodbye";
-        response.tell(speechOutput);
+        var similarTerms = session.attribute.similarTerms;
+
+        if (similarTerms && similarTerms.size != 0) {
+            speechOutput = {
+                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
+        } else {
+            var speechOutput = "Goodbye";
+            response.tell(speechOutput);
+        }
     },
     "AMAZON.YesIntent": function (intent, session, response) {
         var speechOutput, repromptOutput;
-        if (DEFINITION_POINTER > session.attribute.list.size) {
+        var definitions = session.attribute.definitions;
+
+        if (DEFINITION_POINTER > definitions.size) {
             speechOutput = {
                 speech: "<speak>I gave you all the definitions that I have.<p>I can't believe the term is still not clear for you!</p></speak>",
                 type: AlexaSkill.speechOutputType.SSML
@@ -118,7 +131,7 @@ UrbanAlexa.prototype.intentHandlers = {
             response.tell(speechOutput);
         } else {
             speechOutput = {
-                speech: "<speak>" + session.attribute.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                speech: "<speak>" + definitions[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
