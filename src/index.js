@@ -98,16 +98,34 @@ UrbanAlexa.prototype.intentHandlers = {
         });
     },
     "AMAZON.StopIntent": function (intent, session, response) {
-        var speechOutput = "Goodbye";
-        response.tell(speechOutput);
+        var similarTerms = session.attribute.similarTerms;
+        if (similarTerms && similarTerms.size != 0) {
+            speechOutput = {
+                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
+        } else {
+            var speechOutput = "Goodbye";
+            response.tell(speechOutput);
+        }
     },
     "AMAZON.CancelIntent": function (intent, session, response) {
-        var speechOutput = "Goodbye";
-        response.tell(speechOutput);
+        var similarTerms = session.attribute.similarTerms;
+        if (similarTerms && similarTerms.size != 0) {
+            speechOutput = {
+                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
+        } else {
+            var speechOutput = "Goodbye";
+            response.tell(speechOutput);
+        }
+        ;
     },
     "AMAZON.NoIntent": function (intent, session, response) {
         var similarTerms = session.attribute.similarTerms;
-
         if (similarTerms && similarTerms.size != 0) {
             speechOutput = {
                 speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
