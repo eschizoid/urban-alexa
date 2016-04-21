@@ -58,6 +58,8 @@ UrbanAlexa.prototype.intentHandlers = {
             alexaResponse.tell(speechOutput);
         }
 
+        console.log(termSlot.value);
+
         request({
             url: config.endpoint,
             method: "GET",
@@ -78,7 +80,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 alexaResponse.tell(speechOutput);
             } else {
                 console.log(response.statusCode, body);
-                if (body.list.size === 0 || body.tags.size === 0) {
+                if (body.result_type === 'no_results') {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                 } else {
                     speech = "<speak>" + body.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
