@@ -97,7 +97,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
+                    speech: "<speak>" + "Would you like to hear one more definition?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 alexaResponse.ask(speechOutput, repromptOutput);
