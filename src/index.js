@@ -16,8 +16,6 @@ var request = require('request');
 
 var appId = config.appId;
 
-var DEFINITION_POINTER;
-
 var UrbanAlexa = function () {
     AlexaSkill.call(this, appId);
 };
@@ -27,8 +25,6 @@ UrbanAlexa.prototype.constructor = UrbanAlexa;
 
 UrbanAlexa.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
     var repromptOutput, speechOutput;
-
-    DEFINITION_POINTER = 0;
 
     speechOutput = {
         speech: "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.",
@@ -45,6 +41,7 @@ UrbanAlexa.prototype.intentHandlers = {
     "DefineTerm": function (intent, session, alexaResponse) {
         var termSlot = intent.slots.Term;
         var speech, speechOutput, repromptOutput;
+        var pointer = 0;
 
         var hasTerm = termSlot && termSlot.value;
 
@@ -83,9 +80,10 @@ UrbanAlexa.prototype.intentHandlers = {
                 if (body.result_type === 'no_results') {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                 } else {
-                    speech = "<speak>" + body.list[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
+                    speech = "<speak>" + body.list[pointer++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
                     session.attributes.definitions = body.list;
                     session.attributes.similarTerms = body.tags;
+                    session.attributes.pointer = pointer;
                 }
                 speechOutput = {
                     speech: speech,
@@ -142,8 +140,9 @@ UrbanAlexa.prototype.intentHandlers = {
     "AMAZON.YesIntent": function (intent, session, response) {
         var speechOutput, repromptOutput;
         var definitions = session.attribute.definitions;
+        var sessionPointer = session.attribute.pointer;
 
-        if (DEFINITION_POINTER > definitions.size) {
+        if (sessionPointer > definitions.size) {
             speechOutput = {
                 speech: "<speak>I gave you all the definitions that I have.<p>I can't believe the term is still not clear for you!</p></speak>",
                 type: AlexaSkill.speechOutputType.SSML
@@ -151,13 +150,14 @@ UrbanAlexa.prototype.intentHandlers = {
             response.tell(speechOutput);
         } else {
             speechOutput = {
-                speech: "<speak>" + definitions[DEFINITION_POINTER++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                speech: "<speak>" + definitions[sessionPointer++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
                 speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
+            session.attributes.pointer = sessionPointer;
             response.ask(speechOutput, repromptOutput);
         }
     },
