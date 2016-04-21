@@ -171,6 +171,17 @@ UrbanAlexa.prototype.intentHandlers = {
         }
     },
     "AMAZON.HelpIntent": function (intent, session, response) {
+        var speechText = "Using urbandictionary.com, you can ask for popular terms  such as, what's the meaning of cleveland steamer, or, you can say exit... Now, what can I help you with?";
+        var repromptText = "You can say things like, what's the meaning of cleveland steamer, or you can say exit... Now, what can I help you with?";
+        var speechOutput = {
+            speech: speechText,
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        };
+        var repromptOutput = {
+            speech: repromptText,
+            type: AlexaSkill.speechOutputType.PLAIN_TEXT
+        };
+        response.ask(speechOutput, repromptOutput);
     }
 };
 
