@@ -16,7 +16,7 @@ var request = require('request');
 
 var appId = config.appId;
 
-var DEFINITION_POINTER = 0;
+var DEFINITION_POINTER;
 
 var UrbanAlexa = function () {
     AlexaSkill.call(this, appId);
