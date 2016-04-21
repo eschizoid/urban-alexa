@@ -80,10 +80,10 @@ UrbanAlexa.prototype.intentHandlers = {
                 if (body.result_type === 'no_results') {
                     speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
                 } else {
-                    speech = "<speak>" + body.list[pointer++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
+                    speech = "<speak>" + body.list[pointer].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
                     session.attributes.definitions = body.list;
                     session.attributes.similarTerms = body.tags;
-                    session.attributes.pointer = pointer;
+                    session.attributes.pointer = pointer + 1;
                 }
                 speechOutput = {
                     speech: speech,
@@ -98,7 +98,7 @@ UrbanAlexa.prototype.intentHandlers = {
         });
     },
     "AMAZON.StopIntent": function (intent, session, response) {
-        var similarTerms = session.attribute.similarTerms;
+        var similarTerms = session.attributes.similarTerms;
         if (similarTerms && similarTerms.size != 0) {
             speechOutput = {
                 speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
@@ -111,7 +111,7 @@ UrbanAlexa.prototype.intentHandlers = {
         }
     },
     "AMAZON.CancelIntent": function (intent, session, response) {
-        var similarTerms = session.attribute.similarTerms;
+        var similarTerms = session.attributes.similarTerms;
         if (similarTerms && similarTerms.size != 0) {
             speechOutput = {
                 speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
@@ -125,7 +125,7 @@ UrbanAlexa.prototype.intentHandlers = {
         ;
     },
     "AMAZON.NoIntent": function (intent, session, response) {
-        var similarTerms = session.attribute.similarTerms;
+        var similarTerms = session.attributes.similarTerms;
         if (similarTerms && similarTerms.size != 0) {
             speechOutput = {
                 speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
@@ -139,8 +139,8 @@ UrbanAlexa.prototype.intentHandlers = {
     },
     "AMAZON.YesIntent": function (intent, session, response) {
         var speechOutput, repromptOutput;
-        var definitions = session.attribute.definitions;
-        var sessionPointer = session.attribute.pointer;
+        var definitions = session.attributes.definitions;
+        var sessionPointer = session.attributes.pointer;
 
         if (sessionPointer > definitions.size) {
             speechOutput = {
@@ -157,7 +157,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            session.attributes.pointer = sessionPointer;
+            session.attributes.pointer = sessionPointer + 1;
             response.ask(speechOutput, repromptOutput);
         }
     },
