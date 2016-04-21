@@ -12,6 +12,8 @@ var AlexaSkill = require('./AlexaSkill');
 
 var config = require('./config');
 
+var _ = require('./lodash');
+
 var request = require('request');
 
 var appId = config.appId;
@@ -78,12 +80,17 @@ UrbanAlexa.prototype.intentHandlers = {
             } else {
                 console.log(response.statusCode, body);
                 if (body.result_type === 'no_results') {
-                    speech = "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>";
+                    speechOutput = {
+                        speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
+                        type: AlexaSkill.speechOutputType.SSML
+                    };
+                    alexaResponse.tell(speechOutput);
                 } else {
-                    speech = "<speak>" + body.list[pointer].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>";
+                    var cleanResponse = body.list[pointer].definition.replace(/\n/g, '').replace(/\r/g, '');
+                    speech = "<speak>" + termSlot.value + ":" + "<break time='0.5s'/>" + cleanResponse + "</speak>";
                     session.attributes.definitions = body.list;
-                    session.attributes.similarTerms = body.tags;
-                    session.attributes.pointer = pointer + 1;
+                    session.attributes.similarTerms = _.uniq(body.tags);
+                    session.attributes.pointer = pointer;
                 }
                 speechOutput = {
                     speech: speech,
@@ -99,9 +106,9 @@ UrbanAlexa.prototype.intentHandlers = {
     },
     "AMAZON.StopIntent": function (intent, session, response) {
         var similarTerms = session.attributes.similarTerms;
-        if (similarTerms && similarTerms.size != 0) {
+        if (Array.isArray(similarTerms) && similarTerms.size > 0) {
             speechOutput = {
-                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                speech: "<speak>Here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             response.tell(speechOutput);
@@ -112,9 +119,9 @@ UrbanAlexa.prototype.intentHandlers = {
     },
     "AMAZON.CancelIntent": function (intent, session, response) {
         var similarTerms = session.attributes.similarTerms;
-        if (similarTerms && similarTerms.size != 0) {
+        if (Array.isArray(similarTerms) && similarTerms.size > 0) {
             speechOutput = {
-                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                speech: "<speak>Here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             response.tell(speechOutput);
@@ -126,9 +133,9 @@ UrbanAlexa.prototype.intentHandlers = {
     },
     "AMAZON.NoIntent": function (intent, session, response) {
         var similarTerms = session.attributes.similarTerms;
-        if (similarTerms && similarTerms.size != 0) {
+        if (Array.isArray(similarTerms) && similarTerms.size > 0) {
             speechOutput = {
-                speech: "<speak>Here is a list of terms that you might bet interested in: " + similarTerms.toString + "</speak>",
+                speech: "<speak>Here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             response.tell(speechOutput);
@@ -139,26 +146,30 @@ UrbanAlexa.prototype.intentHandlers = {
     },
     "AMAZON.YesIntent": function (intent, session, response) {
         var speechOutput, repromptOutput;
-        var definitions = session.attributes.definitions;
+        var sessionDefinitions = session.attributes.definitions;
         var sessionPointer = session.attributes.pointer;
+        var sessionTerm = session.attributes.term;
 
-        if (sessionPointer > definitions.size) {
+        console.log(sessionDefinitions);
+
+        if (Array.isArray(sessionDefinitions) && sessionDefinitions.size > 0) {
+            var cleanResponse = sessionDefinitions[sessionPointer++].definition.replace(/\n/g, '').replace(/\r/g, '');
             speechOutput = {
-                speech: "<speak>I gave you all the definitions that I have.<p>I can't believe the term is still not clear for you!</p></speak>",
-                type: AlexaSkill.speechOutputType.SSML
-            };
-            response.tell(speechOutput);
-        } else {
-            speechOutput = {
-                speech: "<speak>" + definitions[sessionPointer++].definition.replace(/\n/g, '').replace(/\r/g, '') + "</speak>",
+                speech: "<speak>" + sessionTerm + ":" + "<break time='0.5s'/>" + cleanResponse + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
                 speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            session.attributes.pointer = sessionPointer + 1;
+            session.attributes.pointer = sessionPointer;
             response.ask(speechOutput, repromptOutput);
+        } else {
+            speechOutput = {
+                speech: "<speak>I gave you all the definitions that I have. I can't believe the term is still not clear for you!</speak>",
+                type: AlexaSkill.speechOutputType.SSML
+            };
+            response.tell(speechOutput);
         }
     },
     "AMAZON.HelpIntent": function (intent, session, response) {

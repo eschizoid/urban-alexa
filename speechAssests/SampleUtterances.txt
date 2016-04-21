@@ -1,3 +1,4 @@
+DefineTerm {Term}
 DefineTerm to define {Term}
 DefineTerm define {Term}
 DefineTerm what's {Term}

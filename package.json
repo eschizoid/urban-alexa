@@ -11,6 +11,7 @@
   "dependencies": {
     "request": "^2.7.0",
     "alexa-skill": "^0.1.1",
-    "aws": "^0.0.3-2"
+    "aws": "^0.0.3-2",
+    "lodash": "^4.11.1"
   }
 }
