@@ -86,8 +86,14 @@ UrbanAlexa.prototype.intentHandlers = {
                     };
                     alexaResponse.tell(speechOutput);
                 } else {
-                    var cleanResponse = body.list[definitionPointer].definition.replace(/\n/g, '').replace(/\r/g, '');
-                    speech = "<speak>" + termSlot.value + ":" + "<break time='0.5s'/>" + cleanResponse + "</speak>";
+                    var cleanDefinition = body.list[definitionPointer].definition.replace(/\n/g, '').replace(/\r/g, '');
+                    var cleanExample = body.list[definitionPointer].example.replace(/\n/g, '').replace(/\r/g, '');
+                    speech = "" +
+                        "<speak>" +
+                        "<p>" + termSlot.value + ":" + "<break time='0.5s'/>" + cleanDefinition + "</p>" +
+                        "<p>" + "Here is an example:" + "<break time='0.5s'/>" + cleanExample + "</p>" +
+                        "</speak>";
+
                     session.attributes.definitions = body.list;
                     session.attributes.similarTerms = _.uniq(body.tags);
                     session.attributes.definitionPointer = definitionPointer;
@@ -97,7 +103,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 repromptOutput = {
-                    speech: "<speak>" + "Would you like to hear one more definition?" + "</speak>",
+                    speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
                 alexaResponse.ask(speechOutput, repromptOutput);
@@ -116,7 +122,7 @@ UrbanAlexa.prototype.intentHandlers = {
         var similarTerms = session.attributes.similarTerms;
         if (Array.isArray(similarTerms) && similarTerms.length > 0) {
             speechOutput = {
-                speech: "<speak>Before you go, here is a list of similar terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
+                speech: "<speak>Before you go, here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             response.tell(speechOutput);
@@ -139,7 +145,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
-                speech: "<speak>" + "Would you like to hear one more definition?" + "</speak>",
+                speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             session.attributes.definitionPointer = sessionPointer;
