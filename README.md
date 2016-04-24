@@ -6,19 +6,18 @@ To run this example skill you need to do two things. The first is to deploy the 
 ### AWS Lambda Setup
 1. Go to the AWS Console and click on the Lambda link. Note: ensure you are in us-east or you won't be able to use Alexa with Lambda.
 2. Click on the Create a Lambda Function or Get Started Now button.
-3. Skip the blueprint
+3. Skip the blueprint.
 4. Name the Lambda Function "UrbanAlexa".
-5. Select the runtime as Node.js
-6. Go to the the root directory directory, execute `./gradlew clean buildAlexaSkillZip`.
-7. Select the zip file inside the location `./build/distribution/urban-alexa-0.0.1.zip`.
-8. Select Code entry type as "Upload a .ZIP file" and then upload the .zip file to the Lambda
-9. Keep the Handler as index.handler (this refers to the main js file in the zip).
-10. Create a basic execution role and click create.
-11. Leave the Advanced settings as the defaults.
-12. Click "Next" and review the settings then click "Create Function"
-13. Click the "Event Sources" tab and select "Add event source"
-14. Set the Event Source type as Alexa Skills kit and Enable it now. Click Submit.
-15. Copy the ARN from the top right to be used later in the Alexa Skill Setup
+5. Select the runtime as Node.js.
+6. Go to the the root directory and execute `./gradlew clean buildAlexaSkillZip`.
+7. Select Code entry type as "Upload a .ZIP file" and then upload the file `build/distribution/urban-alexa-0.0.1.zip` to the Lambda.
+8. Keep the Handler as index.handler (this refers to the main js file in the zip).
+9. Create a basic execution role and click create.
+10. Leave the Advanced settings as the defaults.
+11. Click "Next" and review the settings then click "Create Function".
+12. Click the "Event Sources" tab and select "Add event source".
+13. Set the Event Source type as Alexa Skills kit and Enable it now. Click Submit.
+14. Copy the ARN from the top right to be used later in the Alexa Skill Setup.
 
 ### Alexa Skill Setup
 1. Go to the [Alexa Console](https://developer.amazon.com/edw/home.html) and click Add a New Skill.
