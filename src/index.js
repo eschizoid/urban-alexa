@@ -54,7 +54,7 @@ UrbanAlexa.prototype.intentHandlers = {
                 speech: "<speak>" + "I'm sorry, I couldn't find the term you were looking for." + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            return alexaResponse.tell(speechOutput);
+            alexaResponse.tell(speechOutput);
         }
 
         console.log(termSlot.value);
@@ -76,7 +76,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
-                return alexaResponse.tell(speechOutput);
+                alexaResponse.tell(speechOutput);
             } else {
                 console.log(response.statusCode, body);
                 if (body.result_type === 'no_results') {
@@ -84,7 +84,7 @@ UrbanAlexa.prototype.intentHandlers = {
                         speech: "<speak>" + "I'm sorry, I couldn't find the term: " + termSlot.value + "</speak>",
                         type: AlexaSkill.speechOutputType.SSML
                     };
-                    return alexaResponse.tell(speechOutput);
+                    alexaResponse.tell(speechOutput);
                 } else {
                     var cleanDefinition = body.list[definitionPointer].definition.replace(/\n/g, '').replace(/\r/g, '');
                     var cleanExample = body.list[definitionPointer].example.replace(/\n/g, '').replace(/\r/g, '');
@@ -92,6 +92,7 @@ UrbanAlexa.prototype.intentHandlers = {
                         "<speak>" +
                         "<p>" + termSlot.value + ":" + "<break time='0.5s'/>" + cleanDefinition + "</p>" +
                         "<p>" + "Here is an example:" + "<break time='0.5s'/>" + cleanExample + "</p>" +
+                        "<p>" + "Would you like to hear another definition?" + "</p>" +
                         "</speak>";
 
                     session.attributes.definitions = body.list;
@@ -106,17 +107,17 @@ UrbanAlexa.prototype.intentHandlers = {
                     speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
                     type: AlexaSkill.speechOutputType.SSML
                 };
-                return alexaResponse.ask(speechOutput, repromptOutput);
+                alexaResponse.ask(speechOutput, repromptOutput);
             }
         });
     },
     "AMAZON.StopIntent": function (intent, session, response) {
         var speechOutput = "Goodbye";
-        return response.tell(speechOutput);
+        response.tell(speechOutput);
     },
     "AMAZON.CancelIntent": function (intent, session, response) {
         var speechOutput = "Goodbye";
-        return response.tell(speechOutput);
+        response.tell(speechOutput);
     },
     "AMAZON.NoIntent": function (intent, session, response) {
         var similarTerms = session.attributes.similarTerms;
@@ -125,10 +126,10 @@ UrbanAlexa.prototype.intentHandlers = {
                 speech: "<speak>Before you go, here is a list of terms that you might be interested in: " + similarTerms.join(',') + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            return response.tell(speechOutput);
+            response.tell(speechOutput);
         } else {
             var speechOutput = "Goodbye";
-            return response.tell(speechOutput);
+            response.tell(speechOutput);
         }
     },
     "AMAZON.YesIntent": function (intent, session, response) {
@@ -141,7 +142,10 @@ UrbanAlexa.prototype.intentHandlers = {
         if (Array.isArray(sessionDefinitions) && sessionDefinitions.length > 1) {
             var cleanResponse = sessionDefinitions[sessionPointer].definition.replace(/\n/g, '').replace(/\r/g, '');
             speechOutput = {
-                speech: "<speak>" + cleanResponse + "</speak>",
+                speech: "<speak>" +
+                        "<p>" + cleanResponse + "</p>" +
+                        "<p>" + "Would you like to hear another definition?" + "</p>" +
+                        "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
             repromptOutput = {
@@ -149,13 +153,13 @@ UrbanAlexa.prototype.intentHandlers = {
                 type: AlexaSkill.speechOutputType.SSML
             };
             session.attributes.definitionPointer = sessionPointer;
-            return response.ask(speechOutput, repromptOutput);
+            response.ask(speechOutput, repromptOutput);
         } else {
             speechOutput = {
                 speech: "<speak>I gave you all the definitions that I have. I can't believe the term is still not clear for you!</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            return response.tell(speechOutput);
+            response.tell(speechOutput);
         }
     },
     "AMAZON.HelpIntent": function (intent, session, response) {
@@ -169,7 +173,7 @@ UrbanAlexa.prototype.intentHandlers = {
             speech: repromptText,
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
-        return response.ask(speechOutput, repromptOutput);
+        response.ask(speechOutput, repromptOutput);
     }
 };
 
