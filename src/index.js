@@ -47,9 +47,7 @@ UrbanAlexa.prototype.intentHandlers = {
 
         var hasTerm = termSlot && termSlot.value;
 
-        if (hasTerm) {
-            session.attributes.term = termSlot.value;
-        } else {
+        if (!hasTerm) {
             speechOutput = {
                 speech: "<speak>" + "I'm sorry, I couldn't find the term you were looking for." + "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
