@@ -42,7 +42,7 @@ UrbanAlexa.prototype.eventHandlers.onLaunch = function (launchRequest, session, 
 UrbanAlexa.prototype.intentHandlers = {
     "DefineTerm": function (intent, session, alexaResponse) {
         var termSlot = intent.slots.Term;
-        var speech, speechOutput, repromptOutput;
+        var speech, speechOutput;
         var definitionPointer = 0;
 
         var hasTerm = termSlot && termSlot.value;
@@ -103,11 +103,7 @@ UrbanAlexa.prototype.intentHandlers = {
                     speech: speech,
                     type: AlexaSkill.speechOutputType.SSML
                 };
-                repromptOutput = {
-                    speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
-                    type: AlexaSkill.speechOutputType.SSML
-                };
-                alexaResponse.ask(speechOutput, repromptOutput);
+                alexaResponse.tell(speechOutput);
             }
         });
     },
@@ -133,7 +129,7 @@ UrbanAlexa.prototype.intentHandlers = {
         }
     },
     "AMAZON.YesIntent": function (intent, session, response) {
-        var speechOutput, repromptOutput;
+        var speechOutput;
         var sessionDefinitions = session.attributes.definitions;
         var sessionPointer = session.attributes.definitionPointer + 1;
 
@@ -148,12 +144,8 @@ UrbanAlexa.prototype.intentHandlers = {
                         "</speak>",
                 type: AlexaSkill.speechOutputType.SSML
             };
-            repromptOutput = {
-                speech: "<speak>" + "Would you like to hear another definition?" + "</speak>",
-                type: AlexaSkill.speechOutputType.SSML
-            };
             session.attributes.definitionPointer = sessionPointer;
-            response.ask(speechOutput, repromptOutput);
+            response.tell(speechOutput);
         } else {
             speechOutput = {
                 speech: "<speak>I gave you all the definitions that I have. I can't believe the term is still not clear for you!</speak>",
