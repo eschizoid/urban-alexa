@@ -1,3 +1,5 @@
+![Alt text](./images/108.jpg?raw=false)
+
 ##UrbanDictionary-AWS Lambda function for Alexa
 
 ### Setup
