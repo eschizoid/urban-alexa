@@ -10,9 +10,6 @@
       ]
     },
     {
-      "intent": "AMAZON.RepeatIntent"
-    },
-    {
       "intent": "AMAZON.HelpIntent"
     },
     {

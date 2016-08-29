@@ -29,7 +29,7 @@ UrbanAlexa.prototype.eventHandlers.onLaunch = function (launchRequest, session, 
     var repromptOutput, speechOutput;
 
     speechOutput = {
-        speech: "Welcome to the Urban Alexa. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.",
+        speech: "Welcome to the Urban. You can ask a question like, what's the meaning of cleveland steamer? ... Now, what can I help you with.",
         type: AlexaSkill.speechOutputType.PLAIN_TEXT
     };
     repromptOutput = {
